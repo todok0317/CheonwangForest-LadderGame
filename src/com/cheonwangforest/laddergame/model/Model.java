@@ -99,29 +99,54 @@ public class Model {
         List<List<Point>> paths = new ArrayList<>();
         int numParticipants = participants.size();
         int numRungs = ladder[0].length;
-        int LADDER_WIDTH = 500;
+        int LADDER_WIDTH = 500;  // 기준 사이즈 (나중에 View에서 실제 크기로 변환)
         int LADDER_HEIGHT = 400;
-        int colSpacing = LADDER_WIDTH / (numParticipants - 1);
+        
+        // colSpacing 계산 (참가자가 1명일 때도 고려)
+        int colSpacing = numParticipants > 1 ? LADDER_WIDTH / (numParticipants - 1) : LADDER_WIDTH / 2;
         int rowSpacing = LADDER_HEIGHT / numRungs;
 
         for (int i = 0; i < numParticipants; i++) {
             List<Point> path = new ArrayList<>();
             int currentX = i;
             int currentY = 0;
-            path.add(new Point(i * colSpacing, currentY));
+            
+            // 시작점 (참가자가 1명일 때는 중앙)
+            int startX = numParticipants > 1 ? i * colSpacing : LADDER_WIDTH / 2;
+            path.add(new Point(startX, currentY));
 
             for (int j = 0; j < numRungs; j++) {
-                // 현재 위치에서 다음 칸으로 수직 이동
-                currentY += rowSpacing;
-                path.add(new Point(currentX * colSpacing, currentY));
-
-                // 수평 이동 확인
+                // 현재 행에서 다음 행으로 수직 이동
+                int nextY = (j + 1) * rowSpacing;
+                
+                // 수평 이동이 있는지 확인
+                boolean hasHorizontalMove = false;
+                
+                // 왼쪽으로 이동 가능한지 확인
                 if (currentX > 0 && ladder[currentX - 1][j] == 1) {
+                    // 수직 이동 후 수평 이동
+                    int currentPosX = numParticipants > 1 ? currentX * colSpacing : LADDER_WIDTH / 2;
+                    path.add(new Point(currentPosX, nextY));
                     currentX--;
-                    path.add(new Point(currentX * colSpacing, currentY));
-                } else if (currentX < numParticipants - 1 && ladder[currentX][j] == 1) {
+                    int newPosX = numParticipants > 1 ? currentX * colSpacing : LADDER_WIDTH / 2;
+                    path.add(new Point(newPosX, nextY));
+                    hasHorizontalMove = true;
+                }
+                // 오른쪽으로 이동 가능한지 확인
+                else if (currentX < numParticipants - 1 && ladder[currentX][j] == 1) {
+                    // 수직 이동 후 수평 이동
+                    int currentPosX = numParticipants > 1 ? currentX * colSpacing : LADDER_WIDTH / 2;
+                    path.add(new Point(currentPosX, nextY));
                     currentX++;
-                    path.add(new Point(currentX * colSpacing, currentY));
+                    int newPosX = numParticipants > 1 ? currentX * colSpacing : LADDER_WIDTH / 2;
+                    path.add(new Point(newPosX, nextY));
+                    hasHorizontalMove = true;
+                }
+                
+                // 수평 이동이 없었다면 단순히 수직 이동만
+                if (!hasHorizontalMove) {
+                    int currentPosX = numParticipants > 1 ? currentX * colSpacing : LADDER_WIDTH / 2;
+                    path.add(new Point(currentPosX, nextY));
                 }
             }
             paths.add(path);

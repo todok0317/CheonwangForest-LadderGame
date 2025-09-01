@@ -39,16 +39,32 @@ public class Controller {
     }
 
     public void checkResults() {
+        view.stopAnimation(); // 애니메이션이 실행 중이면 중지
+        
         Map<String, String> resultMap = new HashMap<>();
         for (String participant : model.getParticipants()) {
             String result = model.getResultForParticipant(participant);
             resultMap.put(participant, result);
         }
 
-        StringBuilder resultMessage = new StringBuilder("게임 결과:\n");
+        // 결과를 보기 좋게 포맷팅
+        StringBuilder resultMessage = new StringBuilder();
+        resultMessage.append("🎯 사다리타기 결과 🎯\n");
+        resultMessage.append("═══════════════════════\n\n");
+        
         for (Map.Entry<String, String> entry : resultMap.entrySet()) {
-            resultMessage.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
+            String emoji = "통과".equals(entry.getValue()) ? "✅" : "❌";
+            resultMessage.append(String.format("%s %s → %s\n", 
+                emoji, entry.getKey(), entry.getValue()));
         }
-        JOptionPane.showMessageDialog(view.getFrame(), resultMessage.toString(), "결과", JOptionPane.INFORMATION_MESSAGE);
+        
+        resultMessage.append("\n═══════════════════════");
+        
+        JOptionPane.showMessageDialog(
+            view.getFrame(), 
+            resultMessage.toString(), 
+            "게임 결과", 
+            JOptionPane.INFORMATION_MESSAGE
+        );
     }
 }
