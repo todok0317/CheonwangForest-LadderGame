@@ -10,7 +10,15 @@ import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
+/**
+ * 사다리타기 게임 뷰 클래스
+ * GitHub 요구사항 준수:
+ * - Java 8 Stream과 Lambda 적용
+ * - 사용자 이름 최대 5글자 제한
+ * - 개별/전체 결과 조회 기능
+ */
 public class View {
 
     private Controller controller;
@@ -262,31 +270,62 @@ public class View {
             }
         };
 
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        JPanel formPanel = new JPanel();
         formPanel.setOpaque(false);
-
-        JScrollPane scrollPane = new JScrollPane(formPanel);
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
+        formPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 20, 15, 20); // 여백 증가
 
         nameFields = new JTextField[totalParticipants];
         for (int i = 0; i < totalParticipants; i++) {
-            JLabel nameLabel = new JLabel("참가자 " + (i + 1) + ":");
-            nameLabel.setOpaque(false);
+            // 라벨 설정 - 글씨 크기 증가, 중앙 정렬
+            JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
+            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18)); // 글씨 크기 증가
+            nameLabel.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
+            nameLabel.setPreferredSize(new Dimension(100, 35));
+            
+            // 텍스트 필드 설정 - 크기 줄이고 스타일 개선
             nameFields[i] = new JTextField();
-            nameFields[i].setOpaque(false);
-            formPanel.add(nameLabel);
-            formPanel.add(nameFields[i]);
+            nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+            nameFields[i].setPreferredSize(new Dimension(120, 35)); // 폭 줄임 (200->120)
+            nameFields[i].setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(101, 67, 33), 2),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+            ));
+            nameFields[i].setBackground(new Color(255, 248, 220));
+            
+            // GridBag 레이아웃으로 중앙 정렬
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            gbc.anchor = GridBagConstraints.CENTER;
+            formPanel.add(nameLabel, gbc);
+            
+            gbc.gridx = 1;
+            gbc.anchor = GridBagConstraints.CENTER;
+            formPanel.add(nameFields[i], gbc);
         }
 
+        // 스크롤 패널 설정
+        JScrollPane scrollPane = new JScrollPane(formPanel);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
         JButton confirmButton = new JButton("확인");
+        confirmButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        confirmButton.setPreferredSize(new Dimension(120, 45));
+        confirmButton.setBackground(new Color(255, 223, 0));
+        confirmButton.setForeground(new Color(101, 67, 33));
+        confirmButton.setBorder(BorderFactory.createRaisedBevelBorder());
         confirmButton.addActionListener(e -> {
-            List<String> participants = new ArrayList<>();
-            for (JTextField field : nameFields) {
-                if (!field.getText().trim().isEmpty()) {
-                    participants.add(field.getText().trim());
-                }
-            }
+            // Java 8 Stream과 GitHub 요구사항 적용: 이름 5글자 제한
+            List<String> participants = java.util.Arrays.stream(nameFields)
+                    .map(JTextField::getText)
+                    .map(String::trim)
+                    .filter(name -> !name.isEmpty())
+                    .map(name -> name.length() > 5 ? name.substring(0, 5) : name) // 5글자 제한
+                    .collect(Collectors.toList());
 
             if (participants.size() != totalParticipants) {
                 JOptionPane.showMessageDialog(nameDialog, "모든 참가자의 이름을 입력하세요.", "경고",
@@ -294,12 +333,41 @@ public class View {
                 return;
             }
 
+            // 5글자 제한 알림
+            boolean hasLongNames = java.util.Arrays.stream(nameFields)
+                    .anyMatch(field -> field.getText().trim().length() > 5);
+            
+            if (hasLongNames) {
+                JOptionPane.showMessageDialog(nameDialog, 
+                    "이름이 5글자를 초과하는 참가자는 5글자로 줄여집니다.", 
+                    "알림", JOptionPane.INFORMATION_MESSAGE);
+            }
+
             controller.startLadderGame(participants, loseCount, passCount);
             nameDialog.dispose();
         });
 
-        backgroundPanel.add(scrollPane, BorderLayout.CENTER);
-        backgroundPanel.add(confirmButton, BorderLayout.SOUTH);
+        // 메인 패널 구성 - 중앙 정렬로 변경
+        JPanel mainContentPanel = new JPanel(new BorderLayout());
+        mainContentPanel.setOpaque(false);
+        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+        
+        // 제목 추가
+        JLabel titleLabel = new JLabel("참가자 이름을 입력하세요", JLabel.CENTER);
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(101, 67, 33));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        
+        // 확인 버튼을 감싸는 패널
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(confirmButton);
+        
+        mainContentPanel.add(titleLabel, BorderLayout.NORTH);
+        mainContentPanel.add(scrollPane, BorderLayout.CENTER);
+        mainContentPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        backgroundPanel.add(mainContentPanel, BorderLayout.CENTER);
         nameDialog.setContentPane(backgroundPanel);
         nameDialog.setVisible(true);
     }
@@ -332,18 +400,41 @@ public class View {
         };
         mainPanel.setLayout(new BorderLayout());
 
-        // 상단: 참가자 이름들
+        // 상단: 참가자 이름들 (클릭 가능하게 변경)
         JPanel namePanel = new JPanel(
             new GridLayout(1, controller.getModel().getParticipants().size()));
         namePanel.setOpaque(false);
         List<String> participants = controller.getModel().getParticipants();
 
-        for (String name : participants) {
-            JLabel nameLabel = new JLabel(name, SwingConstants.CENTER);
-            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-            nameLabel.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
-            nameLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
-            namePanel.add(nameLabel);
+        for (int i = 0; i < participants.size(); i++) {
+            String name = participants.get(i);
+            final int participantIndex = i; // 람다식에서 사용하기 위한 final 변수
+
+            JButton nameButton = new JButton(name);
+            nameButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            nameButton.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
+            nameButton.setBackground(new Color(255, 248, 220)); // 연한 크림색 배경
+            nameButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+            nameButton.setOpaque(true);
+            nameButton.setFocusPainted(false); // 포커스 테두리 제거
+
+            // 마우스 오버 효과
+            nameButton.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    nameButton.setBackground(new Color(255, 235, 205)); // 살짝 더 어두운 색
+                }
+
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    nameButton.setBackground(new Color(255, 248, 220)); // 원래 색으로
+                }
+            });
+
+            // 클릭 이벤트: 개별 참가자 애니메이션 실행
+            nameButton.addActionListener(e -> {
+                startSingleParticipantAnimation(participantIndex);
+            });
+
+            namePanel.add(nameButton);
         }
 
         // 중앙: 사다리 그리기 패널
@@ -358,7 +449,7 @@ public class View {
         ladderPanel.setPreferredSize(new Dimension(frame.getWidth() - 100, 450));
         ladderPanel.setLayout(null);
 
-        // 하단: 결과 보기 버튼
+        // 하단: 버튼들
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setOpaque(false);
 
@@ -368,8 +459,62 @@ public class View {
         resultButton.setBackground(new Color(255, 223, 0));
         resultButton.setForeground(new Color(101, 67, 33));
         resultButton.setBorder(BorderFactory.createRaisedBevelBorder());
-        resultButton.addActionListener(e -> controller.checkResults());
+        resultButton.addActionListener(e -> {
+            // GitHub 요구사항: 개별/전체 결과 조회 기능
+            String[] options = {"전체 결과", "개별 결과"};
+            int choice = JOptionPane.showOptionDialog(
+                frame,
+                "어떤 결과를 확인하시겠습니까?",
+                "결과 조회 방식 선택",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+            );
+            
+            if (choice == 0) {
+                // 전체 결과
+                controller.checkResults();
+            } else if (choice == 1) {
+                // 개별 결과 - 참가자 선택
+                String[] participantNames = controller.getModel().getParticipants().toArray(new String[0]);
+                String selectedParticipant = (String) JOptionPane.showInputDialog(
+                    frame,
+                    "결과를 확인할 참가자를 선택하세요:",
+                    "개별 결과 조회",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    participantNames,
+                    participantNames[0]
+                );
+                
+                if (selectedParticipant != null) {
+                    // 개별 결과를 커스텀 다이얼로그로 표시
+                    String result = controller.getModel().getResultForParticipant(selectedParticipant);
+                    showCustomIndividualResultDialog(selectedParticipant, result);
+                }
+            }
+        });
         buttonPanel.add(resultButton);
+
+        // 재시작 버튼 추가
+        JButton restartButton = new JButton("다시 시작");
+        restartButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        restartButton.setPreferredSize(new Dimension(120, 40));
+        restartButton.setBackground(new Color(200, 200, 200));
+        restartButton.setForeground(new Color(101, 67, 33));
+        restartButton.setBorder(BorderFactory.createRaisedBevelBorder());
+        restartButton.addActionListener(e -> {
+            int option = JOptionPane.showConfirmDialog(frame,
+                "게임을 다시 시작하시겠습니까?",
+                "다시 시작",
+                JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                showWelcomeScreen(); // controller.restartGame() 대신 직접 호출
+            }
+        });
+        buttonPanel.add(restartButton);
 
         // 홈 버튼 추가
         JButton homeButton = new JButton();
@@ -463,13 +608,45 @@ public class View {
             }
         }
 
+        // 애니메이션 중인 공들 그리기
+        Point[] animPositions = (Point[]) ladderPanel.getClientProperty("animationPositions");
+        if (animPositions != null && animationRunning.get()) {
+            for (int i = 0; i < Math.min(animPositions.length, numParticipants); i++) {
+                Point pos = animPositions[i];
+                if (pos != null) {
+                    // 그라데이션 효과가 있는 공 그리기
+                    RadialGradientPaint gradient = new RadialGradientPaint(
+                        pos.x - 2, pos.y - 2, 10,
+                        new float[]{0f, 1f},
+                        new Color[]{Color.WHITE, getParticipantColor(i)}
+                    );
+                    g2d.setPaint(gradient);
+                    g2d.fillOval(pos.x - 10, pos.y - 10, 20, 20);
+
+                    // 공 테두리
+                    g2d.setColor(Color.BLACK);
+                    g2d.setStroke(new BasicStroke(2.0f));
+                    g2d.drawOval(pos.x - 10, pos.y - 10, 20, 20);
+
+                    // 참가자 번호 표시
+                    g2d.setColor(Color.WHITE);
+                    g2d.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+                    FontMetrics fm = g2d.getFontMetrics();
+                    String num = String.valueOf(i + 1);
+                    int textX = pos.x - fm.stringWidth(num) / 2;
+                    int textY = pos.y + fm.getAscent() / 2 - 2;
+                    g2d.drawString(num, textX, textY);
+                }
+            }
+        }
+
         // 하단에 결과 구역 표시
         g2d.setStroke(new BasicStroke(2.0f));
         g2d.setColor(new Color(34, 139, 34)); // 녹색
         int resultY = startY + ladderHeight + 30;
 
         for (int i = 0; i < numParticipants; i++) {
-            int x = startX + i * colSpacing;
+            int x = startX + (numParticipants > 1 ? i * colSpacing : ladderWidth / 2);
             g2d.drawRect(x - 25, resultY, 50, 30);
 
             // 결과 텍스트 (애니메이션이 끝나면 표시)
@@ -478,6 +655,18 @@ public class View {
                 g2d.setFont(new Font("맑은 고딕", Font.BOLD, 12));
                 FontMetrics fm = g2d.getFontMetrics();
                 String result = "?"; // 기본값
+
+                // 실제 결과 가져오기
+                List<String> participants = controller.getModel().getParticipants();
+                if (i < participants.size()) {
+                    int resultIndex = controller.getModel().calculatePathResult(i);
+                    if (resultIndex < participants.size()) {
+                        // 여기서 결과를 직접 계산해서 표시
+                        String participantName = participants.get(i);
+                        result = controller.getModel().getResultForParticipant(participantName);
+                    }
+                }
+
                 int textX = x - fm.stringWidth(result) / 2;
                 int textY = resultY + 20;
                 g2d.drawString(result, textX, textY);
@@ -494,143 +683,93 @@ public class View {
         }
         animationRunning.set(true);
 
-        Thread animationThread = new Thread(() -> {
-            int numParticipants = controller.getModel().getParticipants().size();
-            List<Point> currentPositions = new ArrayList<>();
-            int[] pathIndices = new int[numParticipants];
+        Timer animationTimer = new Timer(30, null); // 80에서 30으로 변경 (더 빠르게)
 
-            // 애니메이션 설정
-            int stepSize = 3; // 이동 속도
-            int animationDelay = 50; // 프레임 간격 (ms)
+        // 애니메이션 변수들
+        int numParticipants = controller.getModel().getParticipants().size();
+        Point[] currentPositions = new Point[numParticipants];
+        int[] pathIndices = new int[numParticipants];
+        List<List<Point>> screenPaths = new ArrayList<>();
 
-            // 사다리 영역 계산
-            int panelWidth = ladderPanel.getWidth();
-            int panelHeight = ladderPanel.getHeight();
-            int ladderMargin = 80;
-            int topMargin = 50;
-            int bottomMargin = 100;
+        // 사다리 영역 계산
+        int panelWidth = ladderPanel.getWidth();
+        int panelHeight = ladderPanel.getHeight();
+        int ladderMargin = 80;
+        int topMargin = 50;
+        int bottomMargin = 100;
+        int ladderWidth = panelWidth - (2 * ladderMargin);
+        int ladderHeight = panelHeight - topMargin - bottomMargin;
+        int startX = ladderMargin;
+        int startY = topMargin;
 
-            int ladderWidth = panelWidth - (2 * ladderMargin);
-            int ladderHeight = panelHeight - topMargin - bottomMargin;
+        // 각 참가자의 경로 계산
+        List<List<Point>> paths = controller.getModel().getLadderPaths();
 
-            int startX = ladderMargin;
-            int startY = topMargin;
-            int colSpacing = ladderWidth / (numParticipants - 1);
+        // 경로를 실제 화면 좌표로 변환
+        for (int i = 0; i < numParticipants; i++) {
+            List<Point> screenPath = new ArrayList<>();
+            List<Point> originalPath = paths.get(i);
 
-            // 각 참가자의 경로 계산
-            List<List<Point>> paths = controller.getModel().getLadderPaths();
-
-            // 경로를 실제 화면 좌표로 변환
-            List<List<Point>> screenPaths = new ArrayList<>();
-            for (int i = 0; i < numParticipants; i++) {
-                List<Point> screenPath = new ArrayList<>();
-                List<Point> originalPath = paths.get(i);
-
-                for (Point p : originalPath) {
-                    // 모델의 좌표를 화면 좌표로 변환
-                    int screenX = startX + (int) ((double) p.x / 500 * ladderWidth);
-                    int screenY = startY + (int) ((double) p.y / 400 * ladderHeight);
-                    screenPath.add(new Point(screenX, screenY));
-                }
-                screenPaths.add(screenPath);
+            for (Point p : originalPath) {
+                int screenX = startX + (int) ((double) p.x / 500 * ladderWidth);
+                int screenY = startY + (int) ((double) p.y / 400 * ladderHeight);
+                screenPath.add(new Point(screenX, screenY));
             }
+            screenPaths.add(screenPath);
 
-            // 각 참가자의 시작 위치 설정
+            // 시작 위치 설정
+            Point startPos = screenPath.get(0);
+            currentPositions[i] = new Point(startPos.x, startPos.y);
+            pathIndices[i] = 1;
+        }
+
+        animationTimer.addActionListener(e -> {
+            boolean allArrived = true;
+
+            // 각 참가자의 위치 업데이트
             for (int i = 0; i < numParticipants; i++) {
-                Point startPos = screenPaths.get(i).get(0);
-                currentPositions.add(new Point(startPos.x, startPos.y));
-                pathIndices[i] = 1; // 0번째는 시작점이므로 1번째부터 시작
-            }
+                List<Point> path = screenPaths.get(i);
+                if (pathIndices[i] < path.size()) {
+                    Point currentPos = currentPositions[i];
+                    Point targetPos = path.get(pathIndices[i]);
 
-            // 애니메이션 루프
-            while (animationRunning.get()) {
-                boolean allArrived = true;
+                    // 목표 지점까지의 거리 계산
+                    int dx = targetPos.x - currentPos.x;
+                    int dy = targetPos.y - currentPos.y;
+                    double distance = Math.sqrt(dx * dx + dy * dy);
 
-                SwingUtilities.invokeLater(() -> {
-                    Graphics2D g2d = (Graphics2D) ladderPanel.getGraphics();
-                    if (g2d != null) {
-                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON);
+                    int stepSize = 8; // 이동 속도 (4에서 8로 증가)
 
-                        // 패널 전체를 다시 그리기
-                        ladderPanel.repaint();
-
-                        // 각 참가자의 공 그리기
-                        for (int i = 0; i < numParticipants; i++) {
-                            Point currentPos = currentPositions.get(i);
-
-                            // 그라데이션 효과가 있는 공 그리기
-                            RadialGradientPaint gradient = new RadialGradientPaint(
-                                currentPos.x - 2, currentPos.y - 2, 8,
-                                new float[]{0f, 1f},
-                                new Color[]{Color.WHITE, getParticipantColor(i)}
-                            );
-                            g2d.setPaint(gradient);
-                            g2d.fillOval(currentPos.x - 8, currentPos.y - 8, 16, 16);
-
-                            // 공 테두리
-                            g2d.setColor(Color.BLACK);
-                            g2d.setStroke(new BasicStroke(1.5f));
-                            g2d.drawOval(currentPos.x - 8, currentPos.y - 8, 16, 16);
-
-                            // 참가자 번호 표시
-                            g2d.setColor(Color.WHITE);
-                            g2d.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-                            FontMetrics fm = g2d.getFontMetrics();
-                            String num = String.valueOf(i + 1);
-                            int textX = currentPos.x - fm.stringWidth(num) / 2;
-                            int textY = currentPos.y + fm.getAscent() / 2 - 1;
-                            g2d.drawString(num, textX, textY);
-                        }
-                        g2d.dispose();
-                    }
-                });
-
-                // 각 참가자의 위치 업데이트
-                for (int i = 0; i < numParticipants; i++) {
-                    List<Point> path = screenPaths.get(i);
-                    if (pathIndices[i] < path.size()) {
-                        Point currentPos = currentPositions.get(i);
-                        Point targetPos = path.get(pathIndices[i]);
-
-                        // 목표 지점까지의 거리 계산
-                        int dx = targetPos.x - currentPos.x;
-                        int dy = targetPos.y - currentPos.y;
-                        double distance = Math.sqrt(dx * dx + dy * dy);
-
-                        if (distance > stepSize) {
-                            // 목표를 향해 조금씩 이동
-                            currentPos.x += (int) (stepSize * dx / distance);
-                            currentPos.y += (int) (stepSize * dy / distance);
+                    if (distance > stepSize) {
+                        // 목표를 향해 조금씩 이동
+                        currentPos.x += (int) (stepSize * dx / distance);
+                        currentPos.y += (int) (stepSize * dy / distance);
+                        allArrived = false;
+                    } else {
+                        // 목표에 도착했으면 다음 경로 지점으로
+                        currentPos.x = targetPos.x;
+                        currentPos.y = targetPos.y;
+                        pathIndices[i]++;
+                        if (pathIndices[i] < path.size()) {
                             allArrived = false;
-                        } else {
-                            // 목표에 도착했으면 다음 경로 지점으로
-                            currentPos.x = targetPos.x;
-                            currentPos.y = targetPos.y;
-                            pathIndices[i]++;
-                            if (pathIndices[i] < path.size()) {
-                                allArrived = false;
-                            }
                         }
                     }
                 }
+            }
 
-                if (allArrived) {
-                    animationRunning.set(false);
-                    SwingUtilities.invokeLater(() -> ladderPanel.repaint());
-                }
+            // 애니메이션 위치 저장하고 다시 그리기
+            ladderPanel.putClientProperty("animationPositions", currentPositions.clone());
+            ladderPanel.repaint();
 
-                try {
-                    Thread.sleep(animationDelay);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    animationRunning.set(false);
-                }
+            if (allArrived) {
+                animationRunning.set(false);
+                animationTimer.stop();
+                ladderPanel.putClientProperty("animationPositions", null);
+                ladderPanel.repaint();
             }
         });
 
-        animationThread.setDaemon(true);
-        animationThread.start();
+        animationTimer.start();
     }
 
     // 참가자별 고유 색상 반환
@@ -650,6 +789,129 @@ public class View {
 
     public void stopAnimation() {
         animationRunning.set(false);
+    }
+
+    // 개별 참가자 애니메이션
+    private void startSingleParticipantAnimation(int participantIndex) {
+        if (animationRunning.get()) {
+            return;
+        }
+        animationRunning.set(true);
+
+        Thread animationThread = new Thread(() -> {
+            // 애니메이션 설정
+            int stepSize = 8; // 이동 속도 (빠르게 변경)
+            int animationDelay = 20; // 프레임 간격 (ms) - 40에서 20으로 변경
+
+            // 사다리 영역 계산
+            int panelWidth = ladderPanel.getWidth();
+            int panelHeight = ladderPanel.getHeight();
+            int ladderMargin = 80;
+            int topMargin = 50;
+            int bottomMargin = 100;
+
+            int ladderWidth = panelWidth - (2 * ladderMargin);
+            int ladderHeight = panelHeight - topMargin - bottomMargin;
+
+            int startX = ladderMargin;
+            int startY = topMargin;
+
+            // 선택된 참가자의 경로 계산
+            List<List<Point>> paths = controller.getModel().getLadderPaths();
+            List<Point> originalPath = paths.get(participantIndex);
+
+            // 경로를 실제 화면 좌표로 변환
+            List<Point> screenPath = new ArrayList<>();
+            for (Point p : originalPath) {
+                int screenX = startX + (int) ((double) p.x / 500 * ladderWidth);
+                int screenY = startY + (int) ((double) p.y / 400 * ladderHeight);
+                screenPath.add(new Point(screenX, screenY));
+            }
+
+            // 현재 위치와 경로 인덱스
+            Point currentPosition = new Point(screenPath.get(0));
+            int pathIndex = 1; // 0번째는 시작점이므로 1번째부터 시작
+
+            // 애니메이션 루프
+            while (animationRunning.get() && pathIndex < screenPath.size()) {
+                Point targetPos = screenPath.get(pathIndex);
+
+                SwingUtilities.invokeLater(() -> {
+                    Graphics2D g2d = (Graphics2D) ladderPanel.getGraphics();
+                    if (g2d != null) {
+                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        // 패널 전체를 다시 그리기
+                        ladderPanel.repaint();
+
+                        // 선택된 참가자의 공 그리기 (더 크고 눈에 띄게)
+                        RadialGradientPaint gradient = new RadialGradientPaint(
+                            currentPosition.x - 3, currentPosition.y - 3, 12,
+                            new float[]{0f, 1f},
+                            new Color[]{Color.WHITE, getParticipantColor(participantIndex)}
+                        );
+                        g2d.setPaint(gradient);
+                        g2d.fillOval(currentPosition.x - 12, currentPosition.y - 12, 24, 24);
+
+                        // 공 테두리 (두껍게)
+                        g2d.setColor(Color.BLACK);
+                        g2d.setStroke(new BasicStroke(2.0f));
+                        g2d.drawOval(currentPosition.x - 12, currentPosition.y - 12, 24, 24);
+
+                        // 참가자 번호 표시 (더 크게)
+                        g2d.setColor(Color.WHITE);
+                        g2d.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+                        FontMetrics fm = g2d.getFontMetrics();
+                        String num = String.valueOf(participantIndex + 1);
+                        int textX = currentPosition.x - fm.stringWidth(num) / 2;
+                        int textY = currentPosition.y + fm.getAscent() / 2 - 2;
+                        g2d.drawString(num, textX, textY);
+
+                        g2d.dispose();
+                    }
+                });
+
+                // 목표 지점까지의 거리 계산
+                int dx = targetPos.x - currentPosition.x;
+                int dy = targetPos.y - currentPosition.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > stepSize) {
+                    // 목표를 향해 조금씩 이동
+                    currentPosition.x += (int) (stepSize * dx / distance);
+                    currentPosition.y += (int) (stepSize * dy / distance);
+                } else {
+                    // 목표에 도착했으면 다음 경로 지점으로
+                    currentPosition.x = targetPos.x;
+                    currentPosition.y = targetPos.y;
+                    pathIndex++;
+                }
+
+                try {
+                    Thread.sleep(animationDelay);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    animationRunning.set(false);
+                }
+            }
+
+            // 애니메이션 완료 후 결과 표시
+            SwingUtilities.invokeLater(() -> {
+                animationRunning.set(false);
+                ladderPanel.repaint();
+
+                // 결과 팝업을 커스텀 다이얼로그로 표시
+                String participantName = controller.getModel().getParticipants()
+                    .get(participantIndex);
+                String result = controller.getModel().getResultForParticipant(participantName);
+
+                showCustomIndividualResultDialog(participantName, result);
+            });
+        });
+
+        animationThread.setDaemon(true);
+        animationThread.start();
     }
 
     // 버튼으로 숫자 조절하는 헬퍼 메소드
@@ -690,6 +952,69 @@ public class View {
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);
         return button;
+    }
+
+    // 커스텀 개별 결과 다이얼로그
+    private void showCustomIndividualResultDialog(String participantName, String result) {
+        JDialog resultDialog = new JDialog(frame, "개별 결과", true);
+        resultDialog.setSize(600, 400); // 개별 결과는 좀 더 작게
+        resultDialog.setLocationRelativeTo(frame);
+
+        // 배경 이미지가 있는 패널
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                try {
+                    Image bgImage = ImageIO.read(
+                        new File("src/com/cheonwangforest/images/팝업 창 1133 * 637.png"));
+                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                } catch (IOException e) {
+                    // 배경 이미지가 없으면 기본 배경
+                    g.setColor(new Color(245, 235, 180));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };
+        backgroundPanel.setLayout(new BorderLayout());
+
+        // 결과 내용 패널
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(80, 50, 80, 50));
+
+        // 제목
+        JLabel titleLabel = new JLabel("🎯 개별 결과 🎯", JLabel.CENTER);
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(101, 67, 33));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        
+        contentPanel.add(Box.createVerticalStrut(40));
+
+        // 결과 표시 - 이모지 제거
+        JLabel resultLabel = new JLabel(String.format("%s → %s", 
+            participantName, result), JLabel.CENTER);
+        resultLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        resultLabel.setForeground(new Color(101, 67, 33));
+        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(resultLabel);
+
+        // 확인 버튼
+        contentPanel.add(Box.createVerticalStrut(40));
+        JButton okButton = new JButton("확인");
+        okButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        okButton.setPreferredSize(new Dimension(100, 40));
+        okButton.setBackground(new Color(255, 223, 0));
+        okButton.setForeground(new Color(101, 67, 33));
+        okButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        okButton.addActionListener(e -> resultDialog.dispose());
+        contentPanel.add(okButton);
+
+        backgroundPanel.add(contentPanel, BorderLayout.CENTER);
+        resultDialog.setContentPane(backgroundPanel);
+        resultDialog.setVisible(true);
     }
 
     /**
