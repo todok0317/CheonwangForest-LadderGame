@@ -10,7 +10,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class Controller {
@@ -47,11 +48,12 @@ public class Controller {
     public void checkResults() {
         view.stopAnimation();
         
-        // Stream을 사용한 결과 수집
+        // LinkedHashMap으로 순서 유지하며 결과 수집
         Map<String, String> resultMap = model.getParticipants().stream()
                 .collect(Collectors.toMap(
                     participant -> participant,
-                    participant -> model.getResultForParticipant(participant)
+                    participant -> model.getResultForParticipant(participant),
+                    (e1, e2) -> e1, LinkedHashMap::new
                 ));
 
         // 커스텀 결과 다이얼로그 생성
@@ -71,7 +73,7 @@ public class Controller {
                 super.paintComponent(g);
                 try {
                     Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/팝업 창 1133 * 637.png"));
+                        new File("src/com/cheonwangforest/images/팝업_창_1133_x_637.png"));
                     g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                 } catch (IOException e) {
                     // 배경 이미지가 없으면 기본 배경

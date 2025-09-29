@@ -262,7 +262,7 @@ public class View {
                 super.paintComponent(g);
                 try {
                     Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/팝업 창 1133 * 637.png"));
+                        new File("src/com/cheonwangforest/images/팝업_창_1133_x_637.png"));
                     g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                 } catch (IOException e) {
                     System.out.println("팝업 창 배경 이미지를 찾을 수 없습니다.");
@@ -270,39 +270,103 @@ public class View {
             }
         };
 
+        // 참가자 입력 폼 - 5명 이상이면 두 열로 배치
         JPanel formPanel = new JPanel();
         formPanel.setOpaque(false);
-        formPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 20, 15, 20); // 여백 증가
-
+        
         nameFields = new JTextField[totalParticipants];
-        for (int i = 0; i < totalParticipants; i++) {
-            // 라벨 설정 - 글씨 크기 증가, 중앙 정렬
-            JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
-            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18)); // 글씨 크기 증가
-            nameLabel.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
-            nameLabel.setPreferredSize(new Dimension(100, 35));
+        
+        if (totalParticipants >= 5) {
+            // 두 열로 배치 (왼쪽 열, 오른쪽 열)
+            formPanel.setLayout(new GridLayout(1, 2, 50, 0)); // 좌우 50px 간격
             
-            // 텍스트 필드 설정 - 크기 줄이고 스타일 개선
-            nameFields[i] = new JTextField();
-            nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 16));
-            nameFields[i].setPreferredSize(new Dimension(120, 35)); // 폭 줄임 (200->120)
-            nameFields[i].setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(101, 67, 33), 2),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-            ));
-            nameFields[i].setBackground(new Color(255, 248, 220));
+            // 왼쪽 열
+            JPanel leftColumn = new JPanel(new GridBagLayout());
+            leftColumn.setOpaque(false);
+            GridBagConstraints gbcLeft = new GridBagConstraints();
+            gbcLeft.insets = new Insets(15, 10, 15, 10);
             
-            // GridBag 레이아웃으로 중앙 정렬
-            gbc.gridx = 0;
-            gbc.gridy = i;
-            gbc.anchor = GridBagConstraints.CENTER;
-            formPanel.add(nameLabel, gbc);
+            // 오른쪽 열
+            JPanel rightColumn = new JPanel(new GridBagLayout());
+            rightColumn.setOpaque(false);
+            GridBagConstraints gbcRight = new GridBagConstraints();
+            gbcRight.insets = new Insets(15, 10, 15, 10);
             
-            gbc.gridx = 1;
-            gbc.anchor = GridBagConstraints.CENTER;
-            formPanel.add(nameFields[i], gbc);
+            int halfSize = (totalParticipants + 1) / 2; // 왼쪽에 더 많이 배치
+            
+            for (int i = 0; i < totalParticipants; i++) {
+                // 라벨 설정
+                JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
+                nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+                nameLabel.setForeground(new Color(101, 67, 33));
+                nameLabel.setPreferredSize(new Dimension(80, 30));
+                
+                // 텍스트 필드 설정
+                nameFields[i] = new JTextField();
+                nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+                nameFields[i].setPreferredSize(new Dimension(100, 30));
+                nameFields[i].setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(101, 67, 33), 1),
+                    BorderFactory.createEmptyBorder(3, 8, 3, 8)
+                ));
+                nameFields[i].setBackground(new Color(255, 248, 220));
+                
+                if (i < halfSize) {
+                    // 왼쪽 열에 배치
+                    gbcLeft.gridx = 0;
+                    gbcLeft.gridy = i;
+                    gbcLeft.anchor = GridBagConstraints.CENTER;
+                    leftColumn.add(nameLabel, gbcLeft);
+                    
+                    gbcLeft.gridx = 1;
+                    leftColumn.add(nameFields[i], gbcLeft);
+                } else {
+                    // 오른쪽 열에 배치
+                    int rightIndex = i - halfSize;
+                    gbcRight.gridx = 0;
+                    gbcRight.gridy = rightIndex;
+                    gbcRight.anchor = GridBagConstraints.CENTER;
+                    rightColumn.add(nameLabel, gbcRight);
+                    
+                    gbcRight.gridx = 1;
+                    rightColumn.add(nameFields[i], gbcRight);
+                }
+            }
+            
+            formPanel.add(leftColumn);
+            formPanel.add(rightColumn);
+            
+        } else {
+            // 한 열로 배치 (기존 방식)
+            formPanel.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(15, 20, 15, 20);
+            
+            for (int i = 0; i < totalParticipants; i++) {
+                // 라벨 설정
+                JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
+                nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+                nameLabel.setForeground(new Color(101, 67, 33));
+                nameLabel.setPreferredSize(new Dimension(100, 35));
+                
+                // 텍스트 필드 설정
+                nameFields[i] = new JTextField();
+                nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+                nameFields[i].setPreferredSize(new Dimension(120, 35));
+                nameFields[i].setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(101, 67, 33), 2),
+                    BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                ));
+                nameFields[i].setBackground(new Color(255, 248, 220));
+                
+                gbc.gridx = 0;
+                gbc.gridy = i;
+                gbc.anchor = GridBagConstraints.CENTER;
+                formPanel.add(nameLabel, gbc);
+                
+                gbc.gridx = 1;
+                formPanel.add(nameFields[i], gbc);
+            }
         }
 
         // 스크롤 패널 설정
@@ -410,31 +474,31 @@ public class View {
             String name = participants.get(i);
             final int participantIndex = i; // 람다식에서 사용하기 위한 final 변수
 
-            JButton nameButton = new JButton(name);
-            nameButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-            nameButton.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
-            nameButton.setBackground(new Color(255, 248, 220)); // 연한 크림색 배경
-            nameButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
-            nameButton.setOpaque(true);
-            nameButton.setFocusPainted(false); // 포커스 테두리 제거
+            JLabel nameLabel = new JLabel(name, JLabel.CENTER);
+            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            nameLabel.setForeground(new Color(101, 67, 33)); // 갈색 텍스트
+            nameLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+            nameLabel.setOpaque(false); // 투명 배경
 
-            // 마우스 오버 효과
-            nameButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            // 마우스 오버 효과 (커서 변경)
+            nameLabel.addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    nameButton.setBackground(new Color(255, 235, 205)); // 살짝 더 어두운 색
+                    nameLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                    nameLabel.setForeground(new Color(150, 100, 50)); // 살짝 밝은 갈색
                 }
 
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    nameButton.setBackground(new Color(255, 248, 220)); // 원래 색으로
+                    nameLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+                    nameLabel.setForeground(new Color(101, 67, 33)); // 원래 갈색
+                }
+
+                // 클릭 이벤트: 개별 참가자 애니메이션 실행
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    startSingleParticipantAnimation(participantIndex);
                 }
             });
 
-            // 클릭 이벤트: 개별 참가자 애니메이션 실행
-            nameButton.addActionListener(e -> {
-                startSingleParticipantAnimation(participantIndex);
-            });
-
-            namePanel.add(nameButton);
+            namePanel.add(nameLabel);
         }
 
         // 중앙: 사다리 그리기 패널
@@ -967,7 +1031,7 @@ public class View {
                 super.paintComponent(g);
                 try {
                     Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/팝업 창 1133 * 637.png"));
+                        new File("src/com/cheonwangforest/images/팝업_창_1133_x_637.png"));
                     g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                 } catch (IOException e) {
                     // 배경 이미지가 없으면 기본 배경

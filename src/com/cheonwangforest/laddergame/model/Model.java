@@ -94,38 +94,36 @@ public class Model {
     }
 
     private void assignResults(int loseCount, int passCount) {
-        List<String> tempResults = new ArrayList<>();
-
-        // 꽝 추가
-        for (int i = 0; i < loseCount; i++) {
-            tempResults.add("꽝");
-        }
-
-        // 통과 추가 - passCount가 아니라 나머지 모든 참가자를 통과로 설정
-        int remainingCount = participants.size() - loseCount;
-        for (int i = 0; i < remainingCount; i++) {
-            tempResults.add("통과");
-        }
-
-        // 결과 수가 참가자 수와 정확히 일치하는지 확인
+        // 디버깅용 출력 추가
+        System.out.println("=== assignResults 호출됨 ===");
+        System.out.println("participants 수: " + participants.size());
+        System.out.println("loseCount: " + loseCount);
+        System.out.println("passCount: " + passCount);
+        
+        // Java 8 Stream을 사용한 개선된 결과 배정
+        List<String> tempResults = Stream.concat(
+            // 꽝 결과 생성
+            IntStream.range(0, loseCount)
+                    .mapToObj(i -> "꽝"),
+            // 통과 결과 생성
+            IntStream.range(0, participants.size() - loseCount)
+                    .mapToObj(i -> "통과")
+        ).collect(Collectors.toList());
+        
+        // 결과 검증
         if (tempResults.size() != participants.size()) {
             System.err.println("결과 수와 참가자 수가 일치하지 않습니다!");
-            // 안전장치: 부족하면 통과로 채우고, 많으면 제거
-            while (tempResults.size() < participants.size()) {
-                tempResults.add("통과");
-            }
-            while (tempResults.size() > participants.size()) {
-                tempResults.remove(tempResults.size() - 1);
-            }
+            tempResults = IntStream.range(0, participants.size())
+                    .mapToObj(i -> i < loseCount ? "꽝" : "통과")
+                    .collect(Collectors.toList());
         }
-
+        
         Collections.shuffle(tempResults);
         this.results = tempResults;
-
+        
         // 디버깅용 출력
-        System.out.println(
-            "참가자 수: " + participants.size() + ", 꽝: " + loseCount + ", 통과: " + remainingCount);
-        System.out.println("결과 배열: " + tempResults);
+        System.out.println("생성된 결과: " + tempResults);
+        System.out.println("=== assignResults 완료 ===");
     }
 
     public int calculatePathResult(int startIndex) {
