@@ -32,6 +32,14 @@ public class Controller {
     public void setAdminLoser(String adminLoser) {
         model.setAdminLoser(adminLoser);
     }
+    
+    public void setAdminLosers(List<String> adminLosers) {
+        model.setAdminLosers(adminLosers);
+    }
+    
+    public void clearAdminSettings() {
+        model.clearAdminLosers();
+    }
 
     public void showCountSettingsPopup() {
         view.showCountSettingsPopup();
@@ -105,21 +113,49 @@ public class Controller {
         
         contentPanel.add(Box.createVerticalStrut(30));
 
-        // 결과 목록
-        for (Map.Entry<String, String> entry : resultMap.entrySet()) {
-            JPanel resultRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            resultRow.setOpaque(false);
-            
-            // 이모지 제거하고 텍스트만 표시
+        // 결과 목록을 2줄로 표시
+        List<Map.Entry<String, String>> entries = new ArrayList<>(resultMap.entrySet());
+        int halfSize = (entries.size() + 1) / 2; // 반으로 나누기 (홀수면 첫 줄에 더 많이)
+        
+        // 결과를 담을 메인 패널 (2개의 열)
+        JPanel resultsPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        resultsPanel.setOpaque(false);
+        
+        // 왼쪽 열
+        JPanel leftColumn = new JPanel();
+        leftColumn.setOpaque(false);
+        leftColumn.setLayout(new BoxLayout(leftColumn, BoxLayout.Y_AXIS));
+        
+        for (int i = 0; i < halfSize && i < entries.size(); i++) {
+            Map.Entry<String, String> entry = entries.get(i);
             JLabel resultLabel = new JLabel(String.format("%s → %s", 
-                entry.getKey(), entry.getValue()));
-            resultLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+                entry.getKey(), entry.getValue()), JLabel.CENTER);
+            resultLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
             resultLabel.setForeground(new Color(101, 67, 33));
-            
-            resultRow.add(resultLabel);
-            contentPanel.add(resultRow);
-            contentPanel.add(Box.createVerticalStrut(10));
+            resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            leftColumn.add(resultLabel);
+            leftColumn.add(Box.createVerticalStrut(8));
         }
+        
+        // 오른쪽 열
+        JPanel rightColumn = new JPanel();
+        rightColumn.setOpaque(false);
+        rightColumn.setLayout(new BoxLayout(rightColumn, BoxLayout.Y_AXIS));
+        
+        for (int i = halfSize; i < entries.size(); i++) {
+            Map.Entry<String, String> entry = entries.get(i);
+            JLabel resultLabel = new JLabel(String.format("%s → %s", 
+                entry.getKey(), entry.getValue()), JLabel.CENTER);
+            resultLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            resultLabel.setForeground(new Color(101, 67, 33));
+            resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            rightColumn.add(resultLabel);
+            rightColumn.add(Box.createVerticalStrut(8));
+        }
+        
+        resultsPanel.add(leftColumn);
+        resultsPanel.add(rightColumn);
+        contentPanel.add(resultsPanel);
 
         // 확인 버튼
         contentPanel.add(Box.createVerticalStrut(20));

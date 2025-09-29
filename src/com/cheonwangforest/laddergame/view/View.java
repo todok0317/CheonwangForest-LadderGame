@@ -14,11 +14,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
- * 사다리타기 게임 뷰 클래스
- * GitHub 요구사항 준수:
- * - Java 8 Stream과 Lambda 적용
- * - 사용자 이름 최대 5글자 제한
- * - 개별/전체 결과 조회 기능
+ * 사다리타기 게임 뷰 클래스 GitHub 요구사항 준수: - Java 8 Stream과 Lambda 적용 - 사용자 이름 최대 5글자 제한 - 개별/전체 결과 조회 기능
  */
 public class View {
 
@@ -55,7 +51,8 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/제목을-입력해주세요_-001.png");
+                    Image bgImage = ImageLoader.loadImage(
+                        "/com/cheonwangforest/images/제목을-입력해주세요_-001.png");
                     if (bgImage != null) {
                         g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                     }
@@ -81,6 +78,7 @@ public class View {
         homeButton.setContentAreaFilled(false);
         homeButton.setBorderPainted(false);
         homeButton.addActionListener(e -> {
+            controller.clearAdminSettings(); // 관리자 설정 초기화
             showWelcomeScreen();
         });
 
@@ -116,11 +114,7 @@ public class View {
         adminButton.setContentAreaFilled(false);
         adminButton.setBorderPainted(false);
         adminButton.addActionListener(e -> {
-            String adminName = JOptionPane.showInputDialog(frame, "꽝에 당첨될 참가자 이름을 입력하세요:");
-            if (adminName != null && !adminName.trim().isEmpty()) {
-                controller.setAdminLoser(adminName.trim());
-                JOptionPane.showMessageDialog(frame, adminName + "님은 꽝에 당첨되도록 설정되었습니다.");
-            }
+            showAdminModeDialog();
         });
 
         mainPanel.add(homeButton);
@@ -131,6 +125,168 @@ public class View {
         frame.getContentPane().add(mainPanel);
         frame.revalidate();
         frame.repaint();
+    }
+
+    // 관리자 모드: 꽝 설정 팝업
+    private void showAdminModeDialog() {
+        JDialog adminDialog = new JDialog(frame, "관리자 모드", true);
+        adminDialog.setSize(1133, 637);
+        adminDialog.setLocationRelativeTo(frame);
+
+        JPanel backgroundPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                try {
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/팝업_창_1133_x_637.png");
+                    if (bgImage != null) {
+                        g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                    }
+                } catch (Exception e) {
+                    System.out.println("팝업 창 배경 이미지를 찾을 수 없습니다.");
+                }
+            }
+        };
+
+        // 꽝 참가자 입력 폼 - 두 열로 배치
+        JPanel formPanel = new JPanel();
+        formPanel.setOpaque(false);
+        formPanel.setLayout(new GridLayout(1, 2, 50, 0)); // 좌우 50px 간격
+
+        // 동적으로 입력 필드 생성 (최대 10명까지)
+        int maxLosers = 10;
+        JTextField[] loserFields = new JTextField[maxLosers];
+
+        // 왼쪽 열
+        JPanel leftColumn = new JPanel(new GridBagLayout());
+        leftColumn.setOpaque(false);
+        GridBagConstraints gbcLeft = new GridBagConstraints();
+        gbcLeft.insets = new Insets(15, 10, 15, 10);
+
+        // 오른쪽 열
+        JPanel rightColumn = new JPanel(new GridBagLayout());
+        rightColumn.setOpaque(false);
+        GridBagConstraints gbcRight = new GridBagConstraints();
+        gbcRight.insets = new Insets(15, 10, 15, 10);
+
+        int halfSize = (maxLosers + 1) / 2; // 왼쪽에 더 많이 배치 (5개씩)
+        
+        for (int i = 0; i < maxLosers; i++) {
+            // 라벨 설정
+            JLabel nameLabel = new JLabel("꽝 " + (i + 1), JLabel.CENTER);
+            nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+            nameLabel.setForeground(new Color(101, 67, 33));
+            nameLabel.setPreferredSize(new Dimension(80, 30));
+            
+            // 텍스트 필드 설정
+            loserFields[i] = new JTextField();
+            loserFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            loserFields[i].setPreferredSize(new Dimension(100, 30));
+            loserFields[i].setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(101, 67, 33), 1),
+                BorderFactory.createEmptyBorder(3, 8, 3, 8)
+            ));
+            loserFields[i].setBackground(new Color(255, 248, 220));
+            
+            if (i < halfSize) {
+                // 왼쪽 열에 배치
+                gbcLeft.gridx = 0;
+                gbcLeft.gridy = i;
+                gbcLeft.anchor = GridBagConstraints.CENTER;
+                leftColumn.add(nameLabel, gbcLeft);
+
+                gbcLeft.gridx = 1;
+                leftColumn.add(loserFields[i], gbcLeft);
+            } else {
+                // 오른쪽 열에 배치
+                int rightIndex = i - halfSize;
+                gbcRight.gridx = 0;
+                gbcRight.gridy = rightIndex;
+                gbcRight.anchor = GridBagConstraints.CENTER;
+                rightColumn.add(nameLabel, gbcRight);
+
+                gbcRight.gridx = 1;
+                rightColumn.add(loserFields[i], gbcRight);
+            }
+        }
+
+        formPanel.add(leftColumn);
+        formPanel.add(rightColumn);
+
+        // 스크롤 패널 설정 (더 이상 필요 없지만 혹시 모를 경우를 대비)
+        JScrollPane scrollPane = new JScrollPane(formPanel);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+        // 확인 버튼
+        JButton confirmButton = new JButton("확인");
+        confirmButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        confirmButton.setPreferredSize(new Dimension(120, 45));
+        confirmButton.setBackground(new Color(255, 223, 0));
+        confirmButton.setForeground(new Color(101, 67, 33));
+        confirmButton.setBorder(BorderFactory.createRaisedBevelBorder());
+        confirmButton.addActionListener(e -> {
+            // 입력된 이름들 수집
+            List<String> loserList = java.util.Arrays.stream(loserFields)
+                    .map(JTextField::getText)
+                    .map(String::trim)
+                    .filter(name -> !name.isEmpty())
+                    .map(name -> name.length() > 5 ? name.substring(0, 5) : name) // 5글자 제한
+                    .collect(java.util.stream.Collectors.toList());
+
+            if (!loserList.isEmpty()) {
+                controller.setAdminLosers(loserList);
+                String message = String.join(", ", loserList) + "님은 꽝에 당첨되도록 설정되었습니다.";
+                JOptionPane.showMessageDialog(adminDialog, message, "설정 완료",
+                    JOptionPane.INFORMATION_MESSAGE);
+                adminDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(adminDialog,
+                    "최소 1명 이상의 이름을 입력해주세요.", "입력 오류",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        // 메인 패널 구성
+        JPanel mainContentPanel = new JPanel(new BorderLayout());
+        mainContentPanel.setOpaque(false);
+        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+
+        // 제목 추가
+        JLabel titleLabel = new JLabel("꽝에 당첨될 참가자 이름을 입력하세요", JLabel.CENTER);
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(101, 67, 33));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+        // 안내 문구
+        JLabel guideLabel = new JLabel("(입력하지 않은 칸은 무시됩니다)", JLabel.CENTER);
+        guideLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        guideLabel.setForeground(new Color(150, 100, 50));
+
+        // 상단 패널
+        JPanel topPanel = new JPanel();
+        topPanel.setOpaque(false);
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        guideLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        topPanel.add(titleLabel);
+        topPanel.add(guideLabel);
+
+        // 확인 버튼을 감싸는 패널
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(confirmButton);
+
+        mainContentPanel.add(topPanel, BorderLayout.NORTH);
+        mainContentPanel.add(scrollPane, BorderLayout.CENTER);
+        mainContentPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        backgroundPanel.add(mainContentPanel, BorderLayout.CENTER);
+        adminDialog.setContentPane(backgroundPanel);
+        adminDialog.setVisible(true);
     }
 
     // 1단계: 꽝/통과 개수 설정 팝업
@@ -144,7 +300,8 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/참가자 수 설정.png");
+                    Image bgImage = ImageLoader.loadImage(
+                        "/com/cheonwangforest/images/참가자 수 설정.png");
                     if (bgImage != null) {
                         g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                     }
@@ -170,8 +327,8 @@ public class View {
         JButton prevParticipantBtn = createButton("/com/cheonwangforest/images/좌버튼.png");
         JButton nextParticipantBtn = createButton("/com/cheonwangforest/images/우버튼.png");
 
-        prevParticipantBtn.addActionListener(e -> updateCount(participantCountField, -1, 1, 15));
-        nextParticipantBtn.addActionListener(e -> updateCount(participantCountField, 1, 1, 15));
+        prevParticipantBtn.addActionListener(e -> updateCount(participantCountField, -1, 1, 20));
+        nextParticipantBtn.addActionListener(e -> updateCount(participantCountField, 1, 1, 20));
 
         GridBagConstraints gbcParticipant = new GridBagConstraints();
         gbcParticipant.insets = new Insets(0, 5, 0, 5);
@@ -270,7 +427,8 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/팝업_창_1133_x_637.png");
+                    Image bgImage = ImageLoader.loadImage(
+                        "/com/cheonwangforest/images/팝업_창_1133_x_637.png");
                     if (bgImage != null) {
                         g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                     }
@@ -280,37 +438,115 @@ public class View {
             }
         };
 
-        // 참가자 입력 폼 - 5명 이상이면 두 열로 배치
+        // 참가자 입력 폼 - 7명 이상이면 세 열로 배치
         JPanel formPanel = new JPanel();
         formPanel.setOpaque(false);
-        
+
         nameFields = new JTextField[totalParticipants];
-        
-        if (totalParticipants >= 5) {
+
+        if (totalParticipants >= 7) {
+            // 세 열로 배치 (왼쪽, 중앙, 오른쪽)
+            formPanel.setLayout(new GridLayout(1, 3, 30, 0)); // 좌우 30px 간격
+
+            // 왼쪽 열
+            JPanel leftColumn = new JPanel(new GridBagLayout());
+            leftColumn.setOpaque(false);
+            GridBagConstraints gbcLeft = new GridBagConstraints();
+            gbcLeft.insets = new Insets(12, 8, 12, 8);
+
+            // 중앙 열
+            JPanel middleColumn = new JPanel(new GridBagLayout());
+            middleColumn.setOpaque(false);
+            GridBagConstraints gbcMiddle = new GridBagConstraints();
+            gbcMiddle.insets = new Insets(12, 8, 12, 8);
+
+            // 오른쪽 열
+            JPanel rightColumn = new JPanel(new GridBagLayout());
+            rightColumn.setOpaque(false);
+            GridBagConstraints gbcRight = new GridBagConstraints();
+            gbcRight.insets = new Insets(12, 8, 12, 8);
+
+            int columnSize = (totalParticipants + 2) / 3; // 3으로 나누기 (올림)
+
+            for (int i = 0; i < totalParticipants; i++) {
+                // 라벨 설정
+                JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
+                nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+                nameLabel.setForeground(new Color(101, 67, 33));
+                nameLabel.setPreferredSize(new Dimension(70, 28));
+
+                // 텍스트 필드 설정
+                nameFields[i] = new JTextField();
+                nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 13));
+                nameFields[i].setPreferredSize(new Dimension(90, 28));
+                nameFields[i].setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(101, 67, 33), 1),
+                    BorderFactory.createEmptyBorder(2, 6, 2, 6)
+                ));
+                nameFields[i].setBackground(new Color(255, 248, 220));
+
+                // 어느 열에 배치할지 결정
+                if (i < columnSize) {
+                    // 왼쪽 열
+                    gbcLeft.gridx = 0;
+                    gbcLeft.gridy = i;
+                    gbcLeft.anchor = GridBagConstraints.CENTER;
+                    leftColumn.add(nameLabel, gbcLeft);
+
+                    gbcLeft.gridx = 1;
+                    leftColumn.add(nameFields[i], gbcLeft);
+                } else if (i < columnSize * 2) {
+                    // 중앙 열
+                    int middleIndex = i - columnSize;
+                    gbcMiddle.gridx = 0;
+                    gbcMiddle.gridy = middleIndex;
+                    gbcMiddle.anchor = GridBagConstraints.CENTER;
+                    middleColumn.add(nameLabel, gbcMiddle);
+
+                    gbcMiddle.gridx = 1;
+                    middleColumn.add(nameFields[i], gbcMiddle);
+                } else {
+                    // 오른쪽 열
+                    int rightIndex = i - (columnSize * 2);
+                    gbcRight.gridx = 0;
+                    gbcRight.gridy = rightIndex;
+                    gbcRight.anchor = GridBagConstraints.CENTER;
+                    rightColumn.add(nameLabel, gbcRight);
+
+                    gbcRight.gridx = 1;
+                    rightColumn.add(nameFields[i], gbcRight);
+                }
+            }
+
+            formPanel.add(leftColumn);
+            formPanel.add(middleColumn);
+            formPanel.add(rightColumn);
+
+        } else {
             // 두 열로 배치 (왼쪽 열, 오른쪽 열)
             formPanel.setLayout(new GridLayout(1, 2, 50, 0)); // 좌우 50px 간격
-            
+
             // 왼쪽 열
             JPanel leftColumn = new JPanel(new GridBagLayout());
             leftColumn.setOpaque(false);
             GridBagConstraints gbcLeft = new GridBagConstraints();
             gbcLeft.insets = new Insets(15, 10, 15, 10);
-            
+
             // 오른쪽 열
             JPanel rightColumn = new JPanel(new GridBagLayout());
             rightColumn.setOpaque(false);
             GridBagConstraints gbcRight = new GridBagConstraints();
             gbcRight.insets = new Insets(15, 10, 15, 10);
-            
+
             int halfSize = (totalParticipants + 1) / 2; // 왼쪽에 더 많이 배치
-            
+
             for (int i = 0; i < totalParticipants; i++) {
                 // 라벨 설정
                 JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
                 nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
                 nameLabel.setForeground(new Color(101, 67, 33));
                 nameLabel.setPreferredSize(new Dimension(80, 30));
-                
+
                 // 텍스트 필드 설정
                 nameFields[i] = new JTextField();
                 nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 14));
@@ -320,14 +556,14 @@ public class View {
                     BorderFactory.createEmptyBorder(3, 8, 3, 8)
                 ));
                 nameFields[i].setBackground(new Color(255, 248, 220));
-                
+
                 if (i < halfSize) {
                     // 왼쪽 열에 배치
                     gbcLeft.gridx = 0;
                     gbcLeft.gridy = i;
                     gbcLeft.anchor = GridBagConstraints.CENTER;
                     leftColumn.add(nameLabel, gbcLeft);
-                    
+
                     gbcLeft.gridx = 1;
                     leftColumn.add(nameFields[i], gbcLeft);
                 } else {
@@ -337,54 +573,23 @@ public class View {
                     gbcRight.gridy = rightIndex;
                     gbcRight.anchor = GridBagConstraints.CENTER;
                     rightColumn.add(nameLabel, gbcRight);
-                    
+
                     gbcRight.gridx = 1;
                     rightColumn.add(nameFields[i], gbcRight);
                 }
             }
-            
+
             formPanel.add(leftColumn);
             formPanel.add(rightColumn);
-            
-        } else {
-            // 한 열로 배치 (기존 방식)
-            formPanel.setLayout(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(15, 20, 15, 20);
-            
-            for (int i = 0; i < totalParticipants; i++) {
-                // 라벨 설정
-                JLabel nameLabel = new JLabel("참가자 " + (i + 1), JLabel.CENTER);
-                nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
-                nameLabel.setForeground(new Color(101, 67, 33));
-                nameLabel.setPreferredSize(new Dimension(100, 35));
-                
-                // 텍스트 필드 설정
-                nameFields[i] = new JTextField();
-                nameFields[i].setFont(new Font("맑은 고딕", Font.PLAIN, 16));
-                nameFields[i].setPreferredSize(new Dimension(120, 35));
-                nameFields[i].setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(101, 67, 33), 2),
-                    BorderFactory.createEmptyBorder(5, 10, 5, 10)
-                ));
-                nameFields[i].setBackground(new Color(255, 248, 220));
-                
-                gbc.gridx = 0;
-                gbc.gridy = i;
-                gbc.anchor = GridBagConstraints.CENTER;
-                formPanel.add(nameLabel, gbc);
-                
-                gbc.gridx = 1;
-                formPanel.add(nameFields[i], gbc);
-            }
         }
 
-        // 스크롤 패널 설정
+        // 스크롤 패널 설정 (더 이상 필요 없지만 혹시 모를 경우를 대비)
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
         JButton confirmButton = new JButton("확인");
         confirmButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
@@ -395,11 +600,11 @@ public class View {
         confirmButton.addActionListener(e -> {
             // Java 8 Stream과 GitHub 요구사항 적용: 이름 5글자 제한
             List<String> participants = java.util.Arrays.stream(nameFields)
-                    .map(JTextField::getText)
-                    .map(String::trim)
-                    .filter(name -> !name.isEmpty())
-                    .map(name -> name.length() > 5 ? name.substring(0, 5) : name) // 5글자 제한
-                    .collect(Collectors.toList());
+                .map(JTextField::getText)
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .map(name -> name.length() > 5 ? name.substring(0, 5) : name) // 5글자 제한
+                .collect(Collectors.toList());
 
             if (participants.size() != totalParticipants) {
                 JOptionPane.showMessageDialog(nameDialog, "모든 참가자의 이름을 입력하세요.", "경고",
@@ -409,11 +614,11 @@ public class View {
 
             // 5글자 제한 알림
             boolean hasLongNames = java.util.Arrays.stream(nameFields)
-                    .anyMatch(field -> field.getText().trim().length() > 5);
-            
+                .anyMatch(field -> field.getText().trim().length() > 5);
+
             if (hasLongNames) {
-                JOptionPane.showMessageDialog(nameDialog, 
-                    "이름이 5글자를 초과하는 참가자는 5글자로 줄여집니다.", 
+                JOptionPane.showMessageDialog(nameDialog,
+                    "이름이 5글자를 초과하는 참가자는 5글자로 줄여집니다.",
                     "알림", JOptionPane.INFORMATION_MESSAGE);
             }
 
@@ -425,18 +630,18 @@ public class View {
         JPanel mainContentPanel = new JPanel(new BorderLayout());
         mainContentPanel.setOpaque(false);
         mainContentPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
-        
+
         // 제목 추가
         JLabel titleLabel = new JLabel("참가자 이름을 입력하세요", JLabel.CENTER);
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
         titleLabel.setForeground(new Color(101, 67, 33));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
-        
+
         // 확인 버튼을 감싸는 패널
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setOpaque(false);
         buttonPanel.add(confirmButton);
-        
+
         mainContentPanel.add(titleLabel, BorderLayout.NORTH);
         mainContentPanel.add(scrollPane, BorderLayout.CENTER);
         mainContentPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -545,13 +750,14 @@ public class View {
                 options,
                 options[0]
             );
-            
+
             if (choice == 0) {
                 // 전체 결과
                 controller.checkResults();
             } else if (choice == 1) {
                 // 개별 결과 - 참가자 선택
-                String[] participantNames = controller.getModel().getParticipants().toArray(new String[0]);
+                String[] participantNames = controller.getModel().getParticipants()
+                    .toArray(new String[0]);
                 String selectedParticipant = (String) JOptionPane.showInputDialog(
                     frame,
                     "결과를 확인할 참가자를 선택하세요:",
@@ -561,10 +767,11 @@ public class View {
                     participantNames,
                     participantNames[0]
                 );
-                
+
                 if (selectedParticipant != null) {
                     // 개별 결과를 커스텀 다이얼로그로 표시
-                    String result = controller.getModel().getResultForParticipant(selectedParticipant);
+                    String result = controller.getModel()
+                        .getResultForParticipant(selectedParticipant);
                     showCustomIndividualResultDialog(selectedParticipant, result);
                 }
             }
@@ -584,6 +791,7 @@ public class View {
                 "다시 시작",
                 JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
+                controller.clearAdminSettings(); // 관리자 설정 초기화
                 showWelcomeScreen(); // controller.restartGame() 대신 직접 호출
             }
         });
@@ -605,6 +813,7 @@ public class View {
         homeButton.setBorderPainted(false);
         homeButton.addActionListener(e -> {
             stopAnimation();
+            controller.clearAdminSettings(); // 관리자 설정 초기화
             showWelcomeScreen();
         });
 
@@ -1065,11 +1274,11 @@ public class View {
         titleLabel.setForeground(new Color(101, 67, 33));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(titleLabel);
-        
+
         contentPanel.add(Box.createVerticalStrut(40));
 
         // 결과 표시 - 이모지 제거
-        JLabel resultLabel = new JLabel(String.format("%s → %s", 
+        JLabel resultLabel = new JLabel(String.format("%s → %s",
             participantName, result), JLabel.CENTER);
         resultLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
         resultLabel.setForeground(new Color(101, 67, 33));
@@ -1104,7 +1313,8 @@ public class View {
         try {
             Image img = ImageLoader.loadImage(imagePath);
             if (img != null) {
-                button.setIcon(new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
+                button.setIcon(
+                    new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
             } else {
                 throw new IOException("이미지 파일을 찾을 수 없습니다: " + imagePath);
             }

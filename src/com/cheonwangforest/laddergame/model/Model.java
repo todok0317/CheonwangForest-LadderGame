@@ -22,11 +22,12 @@ public class Model {
     private List<String> participants;
     private int[][] ladder;
     private List<String> results;
-    private String adminLoser;
+    private List<String> adminLosers; // 여러 명의 꽝 설정 가능
 
     public Model() {
         // 기본 생성자
         this.gameTitle = "사다리타기"; // 기본 제목
+        this.adminLosers = new ArrayList<>(); // 빈 리스트로 초기화
     }
 
     // 게임 제목 설정/조회 메서드 추가
@@ -47,7 +48,21 @@ public class Model {
     }
 
     public void setAdminLoser(String adminLoser) {
-        this.adminLoser = adminLoser;
+        if (adminLoser != null && !adminLoser.trim().isEmpty()) {
+            this.adminLosers.add(adminLoser.trim());
+        }
+    }
+    
+    public void setAdminLosers(List<String> adminLosers) {
+        this.adminLosers = new ArrayList<>(adminLosers);
+    }
+    
+    public List<String> getAdminLosers() {
+        return adminLosers;
+    }
+    
+    public void clearAdminLosers() {
+        this.adminLosers = new ArrayList<>();
     }
 
     public void setLadderData(List<String> participants, int loseCount, int passCount) {
@@ -57,18 +72,57 @@ public class Model {
 
         assignResults(loseCount, passCount);
 
-        if (adminLoser != null && participants.contains(adminLoser)) {
-            // 관리자 모드: 꽝 설정
-            int loserIndex = participants.indexOf(adminLoser);
-            int pathResultIndex = calculatePathResult(loserIndex);
-
-            // 기존 꽝 결과와 교환
-            int currentLoserIndex = results.indexOf("꽝");
-            if (currentLoserIndex != -1 && currentLoserIndex != pathResultIndex) {
-                String temp = results.get(pathResultIndex);
-                results.set(pathResultIndex, "꽝");
-                results.set(currentLoserIndex, temp);
+        // 관리자 모드: 여러 명의 꽝 설정
+        if (adminLosers != null && !adminLosers.isEmpty()) {
+            System.out.println("=== 관리자 모드 적용 ===");
+            System.out.println("관리자 지정 꽝: " + adminLosers);
+            
+            // 이미 사용된 교환 인덱스 추적
+            List<Integer> usedSwapIndices = new ArrayList<>();
+            
+            // 각 관리자 지정 참가자가 도착하는 결과 인덱스 계산
+            for (String loserName : adminLosers) {
+                if (!participants.contains(loserName)) {
+                    System.out.println("경고: " + loserName + "은(는) 참가자 명단에 없습니다.");
+                    continue;
+                }
+                
+                int participantIndex = participants.indexOf(loserName);
+                int pathResultIndex = calculatePathResult(participantIndex);
+                
+                System.out.println(loserName + " (인덱스 " + participantIndex + ") -> 결과 인덱스 " + pathResultIndex);
+                
+                // 해당 위치가 이미 꽝이면 스킵
+                if (results.get(pathResultIndex).equals("꽝")) {
+                    System.out.println(loserName + "의 결과는 이미 꽝입니다.");
+                    usedSwapIndices.add(pathResultIndex); // 이미 꽝인 위치도 사용된 것으로 표시
+                    continue;
+                }
+                
+                // 꽝이 아니면, 다른 꽝 위치와 교환 (이미 사용된 위치는 제외)
+                int swapIndex = -1;
+                for (int i = 0; i < results.size(); i++) {
+                    if (results.get(i).equals("꽝") && 
+                        i != pathResultIndex && 
+                        !usedSwapIndices.contains(i)) {
+                        swapIndex = i;
+                        break;
+                    }
+                }
+                
+                if (swapIndex != -1) {
+                    String temp = results.get(pathResultIndex);
+                    results.set(pathResultIndex, "꽝");
+                    results.set(swapIndex, temp);
+                    usedSwapIndices.add(swapIndex); // 사용된 꽝 위치 기록
+                    usedSwapIndices.add(pathResultIndex); // 새로 꽝이 된 위치도 기록
+                    System.out.println(loserName + "의 결과를 '꽝'으로 설정 (교환: " + swapIndex + " <-> " + pathResultIndex + ")");
+                } else {
+                    System.out.println("경고: 교환할 꽝 위치를 찾을 수 없습니다.");
+                }
             }
+            System.out.println("최종 결과: " + results);
+            System.out.println("=== 관리자 모드 적용 완료 ===");
         }
     }
 
