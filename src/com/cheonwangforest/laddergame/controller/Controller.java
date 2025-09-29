@@ -2,6 +2,7 @@ package com.cheonwangforest.laddergame.controller;
 
 import com.cheonwangforest.laddergame.model.Model;
 import com.cheonwangforest.laddergame.view.View;
+import com.cheonwangforest.laddergame.util.ImageLoader;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -72,10 +73,15 @@ public class Controller {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/팝업_창_1133_x_637.png"));
-                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
-                } catch (IOException e) {
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/팝업_창_1133_x_637.png");
+                    if (bgImage != null) {
+                        g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                    } else {
+                        // 배경 이미지가 없으면 기본 배경
+                        g.setColor(new Color(245, 235, 180));
+                        g.fillRect(0, 0, getWidth(), getHeight());
+                    }
+                } catch (Exception e) {
                     // 배경 이미지가 없으면 기본 배경
                     g.setColor(new Color(245, 235, 180));
                     g.fillRect(0, 0, getWidth(), getHeight());

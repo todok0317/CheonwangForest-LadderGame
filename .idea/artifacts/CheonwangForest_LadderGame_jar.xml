@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="CheonwangForest-LadderGame:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CheonwangForest_LadderGame_jar</output-path>
+    <root id="archive" name="CheonwangForest-LadderGame.jar">
+      <element id="module-output" name="CheonwangForest-LadderGame" />
+    </root>
+  </artifact>
+</component>

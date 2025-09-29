@@ -1,6 +1,7 @@
 package com.cheonwangforest.laddergame.view;
 
 import com.cheonwangforest.laddergame.controller.Controller;
+import com.cheonwangforest.laddergame.util.ImageLoader;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
@@ -54,10 +55,11 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/제목을-입력해주세요_-001.png"));
-                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
-                } catch (IOException e) {
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/제목을-입력해주세요_-001.png");
+                    if (bgImage != null) {
+                        g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                    }
+                } catch (Exception e) {
                     System.out.println("배경 이미지를 찾을 수 없습니다.");
                 }
             }
@@ -66,10 +68,12 @@ public class View {
 
         JButton homeButton = new JButton();
         try {
-            Image homeImage = ImageIO.read(new File("src/com/cheonwangforest/images/홈 버튼2.png"));
-            homeButton.setIcon(
-                new ImageIcon(homeImage.getScaledInstance(60, 60, Image.SCALE_SMOOTH)));
-        } catch (IOException e) {
+            Image homeImage = ImageLoader.loadImage("/com/cheonwangforest/images/홈 버튼2.png");
+            if (homeImage != null) {
+                homeButton.setIcon(
+                    new ImageIcon(homeImage.getScaledInstance(60, 60, Image.SCALE_SMOOTH)));
+            }
+        } catch (Exception e) {
             homeButton.setText("홈");
         }
         homeButton.setBounds(10, 10, 60, 60);
@@ -82,10 +86,12 @@ public class View {
 
         JButton startButton = new JButton();
         try {
-            Image startImage = ImageIO.read(new File("src/com/cheonwangforest/images/시작버튼.png"));
-            startButton.setIcon(
-                new ImageIcon(startImage.getScaledInstance(237, 112, Image.SCALE_SMOOTH)));
-        } catch (IOException e) {
+            Image startImage = ImageLoader.loadImage("/com/cheonwangforest/images/시작버튼.png");
+            if (startImage != null) {
+                startButton.setIcon(
+                    new ImageIcon(startImage.getScaledInstance(237, 112, Image.SCALE_SMOOTH)));
+            }
+        } catch (Exception e) {
             startButton.setText("시작");
         }
         int startButtonWidth = 237;
@@ -97,10 +103,12 @@ public class View {
 
         JButton adminButton = new JButton();
         try {
-            Image adminImage = ImageIO.read(new File("src/com/cheonwangforest/images/관리자모드.png"));
-            adminButton.setIcon(
-                new ImageIcon(adminImage.getScaledInstance(50, 50, Image.SCALE_SMOOTH)));
-        } catch (IOException e) {
+            Image adminImage = ImageLoader.loadImage("/com/cheonwangforest/images/관리자모드.png");
+            if (adminImage != null) {
+                adminButton.setIcon(
+                    new ImageIcon(adminImage.getScaledInstance(50, 50, Image.SCALE_SMOOTH)));
+            }
+        } catch (Exception e) {
             adminButton.setText("관리자");
         }
         adminButton.setBounds(10, frame.getHeight() - 90, 50, 50);
@@ -136,10 +144,11 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/참가자 수 설정.png"));
-                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
-                } catch (IOException e) {
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/참가자 수 설정.png");
+                    if (bgImage != null) {
+                        g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                    }
+                } catch (Exception e) {
                     System.out.println("팝업 창 배경 이미지를 찾을 수 없습니다.");
                 }
             }
@@ -158,8 +167,8 @@ public class View {
         participantCountField.setHorizontalAlignment(JTextField.CENTER);
         participantCountField.setPreferredSize(new Dimension(128, 128));
 
-        JButton prevParticipantBtn = createButton("src/com/cheonwangforest/images/좌버튼.png");
-        JButton nextParticipantBtn = createButton("src/com/cheonwangforest/images/우버튼.png");
+        JButton prevParticipantBtn = createButton("/com/cheonwangforest/images/좌버튼.png");
+        JButton nextParticipantBtn = createButton("/com/cheonwangforest/images/우버튼.png");
 
         prevParticipantBtn.addActionListener(e -> updateCount(participantCountField, -1, 1, 15));
         nextParticipantBtn.addActionListener(e -> updateCount(participantCountField, 1, 1, 15));
@@ -187,8 +196,8 @@ public class View {
         loseCountField.setHorizontalAlignment(JTextField.CENTER);
         loseCountField.setPreferredSize(new Dimension(128, 128));
 
-        JButton prevLoseBtn = createButton("src/com/cheonwangforest/images/좌버튼.png");
-        JButton nextLoseBtn = createButton("src/com/cheonwangforest/images/우버튼.png");
+        JButton prevLoseBtn = createButton("/com/cheonwangforest/images/좌버튼.png");
+        JButton nextLoseBtn = createButton("/com/cheonwangforest/images/우버튼.png");
 
         prevLoseBtn.addActionListener(e -> updateCount(loseCountField, -1, 0,
             Integer.parseInt(participantCountField.getText())));
@@ -206,7 +215,7 @@ public class View {
         losePanel.add(nextLoseBtn, gbcLose);
 
         // 다음 버튼
-        JButton nextButton = createButtonWithFixedSize("src/com/cheonwangforest/images/다음 버튼.png",
+        JButton nextButton = createButtonWithFixedSize("/com/cheonwangforest/images/다음 버튼.png",
             90, 90);
         nextButton.addActionListener(e -> {
             try {
@@ -261,10 +270,11 @@ public class View {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/팝업_창_1133_x_637.png"));
-                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
-                } catch (IOException e) {
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/팝업_창_1133_x_637.png");
+                    if (bgImage != null) {
+                        g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                    }
+                } catch (Exception e) {
                     System.out.println("팝업 창 배경 이미지를 찾을 수 없습니다.");
                 }
             }
@@ -446,8 +456,7 @@ public class View {
                 super.paintComponent(g);
                 try {
                     // 배경 이미지 로드 시도
-                    Image bgImage = ImageIO.read(
-                        new File("src/com/cheonwangforest/images/게임 창.png"));
+                    Image bgImage = ImageLoader.loadImage("/com/cheonwangforest/images/게임 창.png");
                     if (bgImage != null) {
                         g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
                     } else {
@@ -455,7 +464,7 @@ public class View {
                         g.setColor(new Color(245, 235, 180)); // 연한 노란색 배경
                         g.fillRect(0, 0, getWidth(), getHeight());
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     // 배경 이미지가 없을 경우 기본 배경색
                     g.setColor(new Color(245, 235, 180)); // 연한 노란색 배경
                     g.fillRect(0, 0, getWidth(), getHeight());
@@ -583,10 +592,12 @@ public class View {
         // 홈 버튼 추가
         JButton homeButton = new JButton();
         try {
-            Image homeImage = ImageIO.read(new File("src/com/cheonwangforest/images/홈 버튼2.png"));
-            homeButton.setIcon(
-                new ImageIcon(homeImage.getScaledInstance(50, 50, Image.SCALE_SMOOTH)));
-        } catch (IOException e) {
+            Image homeImage = ImageLoader.loadImage("/com/cheonwangforest/images/홈 버튼2.png");
+            if (homeImage != null) {
+                homeButton.setIcon(
+                    new ImageIcon(homeImage.getScaledInstance(50, 50, Image.SCALE_SMOOTH)));
+            }
+        } catch (Exception e) {
             homeButton.setText("홈");
         }
         homeButton.setOpaque(false);
@@ -1091,14 +1102,12 @@ public class View {
     private JButton createButtonWithFixedSize(String imagePath, int width, int height) {
         JButton button = new JButton();
         try {
-            // getClass().getResourceAsStream()을 사용하여 이미지를 스트림으로 읽음.
-            java.io.InputStream imgStream = getClass().getResourceAsStream(
-                imagePath.replace("src/", "/"));
-            if (imgStream == null) {
+            Image img = ImageLoader.loadImage(imagePath);
+            if (img != null) {
+                button.setIcon(new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
+            } else {
                 throw new IOException("이미지 파일을 찾을 수 없습니다: " + imagePath);
             }
-            Image img = ImageIO.read(imgStream);
-            button.setIcon(new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
         } catch (IOException e) {
             System.err.println("고정 크기 버튼 이미지를 로드하는 중 오류가 발생했습니다: " + e.getMessage());
             button.setText("버튼");
