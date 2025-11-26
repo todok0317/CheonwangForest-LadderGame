@@ -72,7 +72,9 @@ public class Controller {
     // 커스텀 결과 다이얼로그 표시
     private void showCustomResultDialog(Map<String, String> resultMap) {
         JDialog resultDialog = new JDialog(view.getFrame(), "게임 결과", true);
-        resultDialog.setSize(800, 500); // 적당한 크기로 조정
+        // 참가자 수에 따라 다이얼로그 크기 조정 (최소 500, 최대 900)
+        int dialogHeight = Math.min(900, Math.max(500, 300 + (resultMap.size() * 15)));
+        resultDialog.setSize(900, dialogHeight); // 너비도 900으로 증가
         resultDialog.setLocationRelativeTo(view.getFrame());
 
         // 배경 이미지가 있는 패널
@@ -155,7 +157,17 @@ public class Controller {
         
         resultsPanel.add(leftColumn);
         resultsPanel.add(rightColumn);
-        contentPanel.add(resultsPanel);
+        
+        // 결과 패널을 스크롤 패널로 감싸기 (참가자가 많을 때 스크롤 가능)
+        JScrollPane resultsScrollPane = new JScrollPane(resultsPanel);
+        resultsScrollPane.setOpaque(false);
+        resultsScrollPane.getViewport().setOpaque(false);
+        resultsScrollPane.setBorder(null);
+        resultsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        resultsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        resultsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        contentPanel.add(resultsScrollPane);
 
         // 확인 버튼
         contentPanel.add(Box.createVerticalStrut(20));

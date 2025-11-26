@@ -198,8 +198,8 @@ public class Model {
         List<List<Point>> paths = new ArrayList<>();
         int numParticipants = participants.size();
         int numRungs = ladder[0].length;
-        int LADDER_WIDTH = 500;
-        int LADDER_HEIGHT = 400;
+        int LADDER_WIDTH = 800; // 500에서 800으로 증가
+        int LADDER_HEIGHT = 450; // 400에서 450으로 증가
 
         int colSpacing = numParticipants > 1 ? LADDER_WIDTH / (numParticipants - 1) : LADDER_WIDTH / 2;
         int rowSpacing = LADDER_HEIGHT / numRungs;

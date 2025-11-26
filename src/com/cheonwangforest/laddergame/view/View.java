@@ -25,14 +25,14 @@ public class View {
     private JTextField[] nameFields;
     private final AtomicBoolean animationRunning = new AtomicBoolean(false);
 
-    private final int LADDER_WIDTH = 500;
-    private final int LADDER_HEIGHT = 400;
+    private final int LADDER_WIDTH = 800; // 500에서 800으로 증가
+    private final int LADDER_HEIGHT = 450; // 400에서 450으로 증가
 
     public View(Controller controller) {
         this.controller = controller;
         frame = new JFrame("사다리 게임");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1280, 720);
+        frame.setSize(1400, 900); // 크기 증가: 1280x720 -> 1400x900
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
@@ -213,13 +213,14 @@ public class View {
         formPanel.add(leftColumn);
         formPanel.add(rightColumn);
 
-        // 스크롤 패널 설정 (더 이상 필요 없지만 혹시 모를 경우를 대비)
+        // 스크롤 패널 설정 - 참가자가 많을 때 스크롤 가능하게
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // 필요시 스크롤바 표시
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // 스크롤 속도 증가
 
         // 확인 버튼
         JButton confirmButton = new JButton("확인");
@@ -419,7 +420,9 @@ public class View {
     // 2단계: 이름 입력 팝업
     public void showNameInputPopup(int totalParticipants, int loseCount, int passCount) {
         JDialog nameDialog = new JDialog(frame, "참가자 이름 입력", true);
-        nameDialog.setSize(1133, 637);
+        // 참가자 수에 따라 다이얼로그 크기 조정 (최소 637, 최대 900)
+        int dialogHeight = Math.min(900, Math.max(637, 400 + (totalParticipants * 12)));
+        nameDialog.setSize(1133, dialogHeight);
         nameDialog.setLocationRelativeTo(frame);
 
         JPanel backgroundPanel = new JPanel(new BorderLayout()) {
@@ -583,13 +586,14 @@ public class View {
             formPanel.add(rightColumn);
         }
 
-        // 스크롤 패널 설정 (더 이상 필요 없지만 혹시 모를 경우를 대비)
+        // 스크롤 패널 설정 - 참가자가 많을 때 스크롤 가능하게
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // 필요시 스크롤바 표시
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // 스크롤 속도 증가
 
         JButton confirmButton = new JButton("확인");
         confirmButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
@@ -716,6 +720,7 @@ public class View {
         }
 
         // 중앙: 사다리 그리기 패널
+        int numParticipants = controller.getModel().getParticipants().size(); // 참가자 수 가져오기
         ladderPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -724,7 +729,9 @@ public class View {
                 drawLadder(g);
             }
         };
-        ladderPanel.setPreferredSize(new Dimension(frame.getWidth() - 100, 450));
+        // 참가자 수에 따라 패널 너비 동적 조정 (최소 800, 참가자당 약 40px)
+        int dynamicWidth = Math.max(800, numParticipants * 50);
+        ladderPanel.setPreferredSize(new Dimension(dynamicWidth, 550)); // 높이도 550으로 증가
         ladderPanel.setLayout(null);
 
         // 하단: 버튼들
@@ -823,8 +830,18 @@ public class View {
         topPanel.add(homeButton, BorderLayout.WEST);
         topPanel.add(namePanel, BorderLayout.CENTER);
 
+        // 사다리 패널을 스크롤 패널로 감싸기 (참가자가 많을 때 좌우 스크롤 가능)
+        JScrollPane ladderScrollPane = new JScrollPane(ladderPanel);
+        ladderScrollPane.setOpaque(false);
+        ladderScrollPane.getViewport().setOpaque(false);
+        ladderScrollPane.setBorder(null);
+        ladderScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        ladderScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        ladderScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        ladderScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
         mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(ladderPanel, BorderLayout.CENTER);
+        mainPanel.add(ladderScrollPane, BorderLayout.CENTER); // ladderPanel 대신 ladderScrollPane 사용
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         frame.setContentPane(mainPanel);
