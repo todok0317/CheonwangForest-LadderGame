@@ -327,8 +327,8 @@ public class View {
         JButton prevParticipantBtn = createButton("/com/cheonwangforest/images/좌버튼.png");
         JButton nextParticipantBtn = createButton("/com/cheonwangforest/images/우버튼.png");
 
-        prevParticipantBtn.addActionListener(e -> updateCount(participantCountField, -1, 1, 20));
-        nextParticipantBtn.addActionListener(e -> updateCount(participantCountField, 1, 1, 20));
+        prevParticipantBtn.addActionListener(e -> updateCount(participantCountField, -1, 1, 30));
+        nextParticipantBtn.addActionListener(e -> updateCount(participantCountField, 1, 1, 30));
 
         GridBagConstraints gbcParticipant = new GridBagConstraints();
         gbcParticipant.insets = new Insets(0, 5, 0, 5);
